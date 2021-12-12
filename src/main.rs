@@ -152,6 +152,27 @@ pub enum Token {
     Eof,
 }
 
+pub struct Parser {
+    tokens: Vec<Token>,
+}
+
+impl Parser {
+    pub fn new(tokens: Vec<Token>) -> Self {
+        let parser = Parser { tokens };
+        return parser;
+    }
+
+    pub fn parse(&mut self) -> Value {
+        unimplemented!()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Value {
+    String(String),
+    Object(BTreeMap<String, Value>),
+}
+
 fn _main() {
     let input = "{test: 'hoge'}";
     let lexer = Lexer::new(input);
@@ -220,5 +241,20 @@ mod test {
             }
         }
         assert!(succeed);
+    }
+
+    #[test]
+    fn test_parse() {
+        let input = r#"
+        {
+            "key": "value",
+        }
+        "#;
+        let l = Lexer::new(input).tokenize();
+        let mut p = Parser::new(l);
+        let value = p.parse();
+        let mut object = BTreeMap::new();
+        object.insert("key".to_string(), Value::String("value".to_string()));
+        assert_eq!(value, Value::Object(object));
     }
 }
