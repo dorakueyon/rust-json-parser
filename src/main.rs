@@ -190,6 +190,10 @@ impl Parser {
                 self.next_expect()?;
                 Ok(Value::String(s))
             }
+            Token::Number(num) => {
+                self.next_expect()?;
+                Ok(Value::Number(num))
+            }
             _ => Err(ParserError::new(&format!(
                 "error: a token must start {{ or [ or string or number or bool or null {:?}",
                 token
@@ -256,6 +260,7 @@ impl Parser {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     String(String),
+    Number(u64),
     Object(BTreeMap<String, Value>),
 }
 
@@ -333,7 +338,8 @@ mod test {
     fn test_parse() {
         let input = r#"
         {
-            "key": "value"
+            "key": "value",
+            "number": 123
         }
         "#;
         let l = Lexer::new(input).tokenize();
@@ -341,6 +347,7 @@ mod test {
         let value = p.parse().unwrap();
         let mut object = BTreeMap::new();
         object.insert("key".to_string(), Value::String("value".to_string()));
+        object.insert("number".to_string(), Value::Number(123));
         assert_eq!(value, Value::Object(object));
     }
 }
