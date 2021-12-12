@@ -8,6 +8,7 @@ pub enum Value {
     String(String),
     Number(f64),
     Object(BTreeMap<String, Value>),
+    Array(Vec<Value>),
 }
 
 fn _main() {

@@ -35,6 +35,7 @@ impl Parser {
         let token = self.peek_token()?.clone();
         let result = match token {
             Token::Lbrace => self.parse_object(),
+            Token::Lbracket => self.parse_array(),
             Token::String(s) => {
                 self.next_expect()?;
                 Ok(Value::String(s))
@@ -81,8 +82,6 @@ impl Parser {
                     ))
                 }
             }
-            println!("{:?}", self.tokens);
-            println!("object {:?}, index: {}", object, self.index);
             let token3 = self.next_expect()?;
             match token3 {
                 Token::Rbrace => return Ok(Value::Object(object)),
@@ -92,6 +91,39 @@ impl Parser {
                         "error: a {{, or token is expected: {:?}",
                         token3
                     )));
+                }
+            }
+        }
+    }
+    fn parse_array(&mut self) -> Result<Value, ParserError> {
+        let token = self.peek_token()?;
+        if *token != Token::Lbracket {
+            return Err(ParserError::new(&format!(
+                "error: JSON array must starts [ {:?}",
+                token
+            )));
+        }
+
+        // skip {
+        self.next_expect()?;
+
+        let mut array: Vec<Value> = vec![];
+        if *self.peek_token()? == Token::Rbracket {
+            return Ok(Value::Array(array));
+        }
+
+        loop {
+            let value = self.parse()?;
+            array.push(value);
+            let token = self.next_expect()?;
+            match token {
+                Token::Rbracket => return Ok(Value::Array(array)),
+                Token::Comma => continue,
+                _ => {
+                    return Err(ParserError::new(&format!(
+                        "error: a [ or token is expected: {:?}",
+                        token
+                    )))
                 }
             }
         }
@@ -126,5 +158,17 @@ mod test {
         object.insert("key".to_string(), Value::String("value".to_string()));
         object.insert("number".to_string(), Value::Number(123.));
         assert_eq!(value, Value::Object(object));
+
+        // array
+        let input = r#"
+        [{ "key": "value" }]
+        "#;
+        let l = Lexer::new(input).tokenize();
+        let mut p = Parser::new(l);
+        let value = p.parse().unwrap();
+        let mut object = BTreeMap::new();
+        object.insert("key".to_string(), Value::String("value".to_string()));
+        let v = vec![Value::Object(object)];
+        assert_eq!(value, Value::Array(v));
     }
 }

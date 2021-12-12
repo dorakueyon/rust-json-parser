@@ -5,9 +5,11 @@ pub enum Token {
     Number(f64),
     Boolean(bool),
 
-    Lbrace, // {
-    Rbrace, // }
-    Colon,  // :
+    Lbrace,   // {
+    Rbrace,   // }
+    Lbracket, //[
+    Rbracket, //]
+    Colon,    // :
     Comma,
     Illegal(char),
     Eof,
@@ -74,6 +76,8 @@ impl<'a> Lexer<'a> {
                 //c if c.is_whitespace() || c == '\n' => self.new_token(TokenType::WhiteSpace),
                 '{' => Token::Lbrace,
                 '}' => Token::Rbrace,
+                '[' => Token::Lbracket,
+                ']' => Token::Rbracket,
                 ':' => Token::Colon,
                 ',' => Token::Comma,
                 // string
@@ -160,6 +164,7 @@ mod test {
             "boolean": true,
             "string": "hoge",
             "float": 25.5,
+	    "array": ["name", 321],
         }
         "#;
 
@@ -191,8 +196,19 @@ mod test {
             Token::Colon,
             Token::Number(25.5),
             Token::Comma,
-            Token::Rbrace,
             //end
+
+            // begin "array": ["name", 321],
+            Token::String("array".to_string()),
+            Token::Colon,
+            Token::Lbracket,
+            Token::String("name".to_string()),
+            Token::Comma,
+            Token::Number(321.),
+            Token::Rbracket,
+            Token::Comma,
+            Token::Rbrace,
+            // end
         ];
         let mut l = Lexer::new(input);
         let mut succeed = true;
