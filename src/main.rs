@@ -1,4 +1,5 @@
 use core::num;
+use std::collections::BTreeMap;
 
 #[derive(Debug)]
 pub struct LexerError {
@@ -6,7 +7,7 @@ pub struct LexerError {
 }
 
 impl LexerError {
-    fn new(msg: &str) -> Self {
+    pub fn new(msg: &str) -> Self {
         LexerError {
             msg: msg.to_string(),
         }
@@ -27,10 +28,6 @@ impl<'a> Lexer<'a> {
         //return lexer;
     }
 
-    fn new_token(&self, token_type: TokenType) -> Token {
-        Token { token_type }
-    }
-
     fn skip_whitespace(&mut self) {
         loop {
             let peeked = self.chars.peek();
@@ -46,42 +43,53 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    pub fn tokenize(&mut self) -> Vec<Token> {
+        let mut tokens = vec![];
+        while let Some(token) = self.next_token() {
+            match token {
+                Token::WhiteSpace => {}
+                _ => tokens.push(token),
+            }
+        }
+        return tokens;
+    }
+
     pub fn next_token(&mut self) -> Option<Token> {
         self.skip_whitespace();
         let mut skip_next = false;
         let token = match self.chars.peek() {
             Some(&c) => match c {
                 //c if c.is_whitespace() || c == '\n' => self.new_token(TokenType::WhiteSpace),
-                '{' => self.new_token(TokenType::Lbrace),
-                '}' => self.new_token(TokenType::Rbrace),
-                ':' => self.new_token(TokenType::Colon),
-                ',' => self.new_token(TokenType::Comma),
+                '{' => Token::Lbrace,
+                '}' => Token::Rbrace,
+                ':' => Token::Colon,
+                ',' => Token::Comma,
                 // string
                 '"' => {
                     self.chars.next();
                     let s = self.read_string();
                     skip_next = true;
-                    self.new_token(TokenType::String(s))
+                    Token::String(s)
                 }
                 // number
                 c if c.is_numeric() => {
                     let n = self.read_number();
                     skip_next = true;
-                    self.new_token(TokenType::Number(n))
+                    Token::Number(n)
                 }
                 // boolean: true
                 't' => {
                     let bool = self.read_bool();
                     skip_next = true;
-                    self.new_token(TokenType::Boolean(bool))
+                    Token::Boolean(bool)
                 }
                 // boolean: false
                 'f' => {
                     let bool = self.read_bool();
                     skip_next = true;
-                    self.new_token(TokenType::Boolean(bool))
+                    Token::Boolean(bool)
                 }
-                _ => self.new_token(TokenType::Illegal(c.clone())),
+                _ => Token::Illegal(c.clone()),
             },
             None => return None,
         };
@@ -129,14 +137,8 @@ impl<'a> Lexer<'a> {
     }
 }
 
-pub struct Token {
-    pub token_type: TokenType,
-}
-
-pub enum Boolean {}
-
-#[derive(PartialEq, Debug)]
-pub enum TokenType {
+#[derive(Debug, Clone, PartialEq)]
+pub enum Token {
     WhiteSpace,
     String(String),
     Number(u64),
@@ -147,6 +149,7 @@ pub enum TokenType {
     Colon,  // :
     Comma,
     Illegal(char),
+    Eof,
 }
 
 fn _main() {
@@ -172,40 +175,40 @@ mod test {
         }
         "#;
 
-        let tests: Vec<TokenType> = vec![
-            TokenType::Lbrace,
+        let tests: Vec<Token> = vec![
+            Token::Lbrace,
             // begin "number": 123,
-            TokenType::String("number".to_string()),
-            TokenType::Colon,
-            TokenType::Number(123),
-            TokenType::Comma,
+            Token::String("number".to_string()),
+            Token::Colon,
+            Token::Number(123),
+            Token::Comma,
             //// end
 
             // begin: "booealn": true,
-            TokenType::String("boolean".to_string()),
-            TokenType::Colon,
-            TokenType::Boolean(true),
-            TokenType::Comma,
+            Token::String("boolean".to_string()),
+            Token::Colon,
+            Token::Boolean(true),
+            Token::Comma,
             ////end
 
             // begin: "string": "hoge",
-            TokenType::String("string".to_string()),
-            TokenType::Colon,
-            TokenType::String("hoge".to_string()),
-            TokenType::Comma,
-            TokenType::Rbrace,
+            Token::String("string".to_string()),
+            Token::Colon,
+            Token::String("hoge".to_string()),
+            Token::Comma,
+            Token::Rbrace,
         ];
         let mut l = Lexer::new(input);
         let mut succeed = true;
         for (i, tt) in tests.iter().enumerate() {
             match l.next_token() {
                 Some(tok) => {
-                    if tok.token_type != *tt {
+                    if tok != *tt {
                         println!(
                             "{}: Type match failed. expected: {:?}, got: {:?}",
                             i + 1,
                             &tt,
-                            &tok.token_type
+                            &tok
                         );
                         succeed = false;
                     }
