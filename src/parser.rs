@@ -124,7 +124,7 @@ mod test {
         let value = p.parse().unwrap();
         let mut object = BTreeMap::new();
         object.insert("key".to_string(), Value::String("value".to_string()));
-        object.insert("number".to_string(), Value::Number(123));
+        object.insert("number".to_string(), Value::Number(123.));
         assert_eq!(value, Value::Object(object));
     }
 }

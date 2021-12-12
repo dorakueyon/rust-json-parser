@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
     String(String),
-    Number(u64),
+    Number(f64),
     Object(BTreeMap<String, Value>),
 }
 

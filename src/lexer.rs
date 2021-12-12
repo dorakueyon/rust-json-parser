@@ -2,7 +2,7 @@
 pub enum Token {
     WhiteSpace,
     String(String),
-    Number(u64),
+    Number(f64),
     Boolean(bool),
 
     Lbrace, // {
@@ -122,17 +122,17 @@ impl<'a> Lexer<'a> {
         return result;
     }
 
-    fn read_number(&mut self) -> u64 {
+    fn read_number(&mut self) -> f64 {
         let mut number_string = String::new();
         while let Some(&c) = self.chars.peek() {
-            if c.is_numeric() {
+            if c.is_numeric() || c == '.' {
                 self.chars.next();
                 number_string.push(c);
             } else {
                 break;
             }
         }
-        return number_string.parse::<u64>().unwrap();
+        return number_string.parse::<f64>().unwrap();
     }
 
     fn read_bool(&mut self) -> bool {
@@ -159,6 +159,7 @@ mod test {
             "number": 123,
             "boolean": true,
             "string": "hoge",
+            "float": 25.5,
         }
         "#;
 
@@ -167,7 +168,7 @@ mod test {
             // begin "number": 123,
             Token::String("number".to_string()),
             Token::Colon,
-            Token::Number(123),
+            Token::Number(123.),
             Token::Comma,
             //// end
 
@@ -183,7 +184,15 @@ mod test {
             Token::Colon,
             Token::String("hoge".to_string()),
             Token::Comma,
+            //end
+
+            // begin: "float": 25.5,
+            Token::String("float".to_string()),
+            Token::Colon,
+            Token::Number(25.5),
+            Token::Comma,
             Token::Rbrace,
+            //end
         ];
         let mut l = Lexer::new(input);
         let mut succeed = true;
