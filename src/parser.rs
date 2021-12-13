@@ -36,6 +36,14 @@ impl Parser {
         let result = match token {
             Token::Lbrace => self.parse_object(),
             Token::Lbracket => self.parse_array(),
+            Token::Null => {
+                self.next_expect()?;
+                Ok(Value::Null)
+            }
+            Token::Boolean(bool) => {
+                self.next_expect()?;
+                Ok(Value::Boolean(bool))
+            }
             Token::String(s) => {
                 self.next_expect()?;
                 Ok(Value::String(s))

@@ -4,6 +4,7 @@ pub enum Token {
     String(String),
     Number(f64),
     Boolean(bool),
+    Null,
 
     Lbrace,   // {
     Rbrace,   // }
@@ -105,6 +106,17 @@ impl<'a> Lexer<'a> {
                     skip_next = true;
                     Token::Boolean(bool)
                 }
+                // null
+                'n' => {
+                    // TODO: read系はResultにする
+                    let result = self.read_null();
+                    skip_next = true;
+                    if result {
+                        Token::Null
+                    } else {
+                        Token::Illegal(c)
+                    }
+                }
                 _ => Token::Illegal(c.clone()),
             },
             None => return None,
@@ -151,6 +163,19 @@ impl<'a> Lexer<'a> {
             return false;
         }
     }
+
+    fn read_null(&mut self) -> bool {
+        let mut null_string = String::new();
+        for _ in 0..4 {
+            null_string.push(*self.chars.peek().unwrap());
+            self.chars.next();
+        }
+        if null_string == "null" {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 #[cfg(test)]
@@ -164,7 +189,8 @@ mod test {
             "boolean": true,
             "string": "hoge",
             "float": 25.5,
-	    "array": ["name", 321],
+	        "array": ["name", 321],
+            "null": null,
         }
         "#;
 
@@ -207,8 +233,15 @@ mod test {
             Token::Number(321.),
             Token::Rbracket,
             Token::Comma,
-            Token::Rbrace,
             // end
+
+            // begin "null": null,
+            Token::String("null".to_string()),
+            Token::Colon,
+            Token::Null,
+            Token::Comma,
+            //end
+            Token::Rbrace,
         ];
         let mut l = Lexer::new(input);
         let mut succeed = true;
