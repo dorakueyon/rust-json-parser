@@ -141,7 +141,7 @@ impl<'a> Lexer<'a> {
     fn read_number(&mut self) -> f64 {
         let mut number_string = String::new();
         while let Some(&c) = self.chars.peek() {
-            if c.is_numeric() || c == '.' {
+            if c.is_numeric() || c == '.' || c == 'E' {
                 self.chars.next();
                 number_string.push(c);
             } else {
@@ -191,6 +191,9 @@ mod test {
             "float": 25.5,
 	        "array": ["name", 321],
             "null": null,
+            "object": {
+               "number": 2E10
+            },
         }
         "#;
 
@@ -239,6 +242,17 @@ mod test {
             Token::String("null".to_string()),
             Token::Colon,
             Token::Null,
+            Token::Comma,
+            //end
+
+            // begin "object": { "number": 2E10 },
+            Token::String("object".to_string()),
+            Token::Colon,
+            Token::Lbrace,
+            Token::String("number".to_string()),
+            Token::Colon,
+            Token::Number(20000000000.),
+            Token::Rbrace,
             Token::Comma,
             //end
             Token::Rbrace,
