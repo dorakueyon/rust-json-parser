@@ -171,4 +171,25 @@ mod test {
         let v = vec![Value::Object(object)];
         assert_eq!(value, Value::Array(v));
     }
+
+    #[test]
+    fn test_parse_array() {
+        let json = r#"[null, 1, true, "hello]"#;
+        let value = Parser::new(Lexer::new(json).tokenize()).parse().unwrap();
+        let array = Value::Array(vec![
+            Value::Null,
+            Value::Number(1.0),
+            Value::Boolean(true),
+            Value::String("hello".to_string()),
+        ]);
+        assert_eq!(value, array);
+
+        let json = r#"[["togatoga", 123]]"#;
+        let value = Parser::new(Lexer::new(json).tokenize()).parse().unwrap();
+        let array = Value::Array(vec![Value::Array(vec![
+            Value::String("togatoga".to_string()),
+            Value::Number(123.0),
+        ])]);
+        assert_eq!(value, array);
+    }
 }

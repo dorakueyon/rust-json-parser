@@ -5,8 +5,10 @@ use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Value {
+    Null,
     String(String),
     Number(f64),
+    Boolean(bool),
     Object(BTreeMap<String, Value>),
     Array(Vec<Value>),
 }
