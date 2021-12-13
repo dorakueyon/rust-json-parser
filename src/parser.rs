@@ -182,7 +182,7 @@ mod test {
 
     #[test]
     fn test_parse_array() {
-        let json = r#"[null, 1, true, "hello]"#;
+        let json = r#"[null, 1, true, "hello"]"#;
         let value = Parser::new(Lexer::new(json).tokenize()).parse().unwrap();
         let array = Value::Array(vec![
             Value::Null,
